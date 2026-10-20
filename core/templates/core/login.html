@@ -1,0 +1,58 @@
+{% extends 'core/base.html' %} {% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-5">
+    <div class="card shadow">
+      <div class="card-body">
+        <h3 class="card-title text-center mb-4">Вход в систему</h3>
+
+        <!-- Блок для вывода ошибок, если пароль неверный -->
+        {% if form.errors %}
+        <div class="alert alert-danger">
+          Неверный логин или пароль. Попробуйте снова.
+        </div>
+        {% endif %}
+
+        <!-- Сама форма входа -->
+        <form method="post" action="{% url 'login' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="id_username" class="form-label">Логин</label>
+            <input
+              type="text"
+              name="username"
+              id="id_username"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="id_password" class="form-label">Пароль</label>
+            <input
+              type="password"
+              name="password"
+              id="id_password"
+              class="form-control"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Войти</button>
+          <input type="hidden" name="next" value="{{ next }}" />
+        </form>
+
+        <hr class="my-4" />
+
+        <!-- Блок с кнопкой регистрации -->
+        <div class="text-center">
+          <p class="mb-0 text-muted">Нет аккаунта?</p>
+          <a
+            href="{% url 'register' %}"
+            class="btn btn-outline-success w-100 mt-2"
+          >
+            Зарегистрироваться как Заказчик
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

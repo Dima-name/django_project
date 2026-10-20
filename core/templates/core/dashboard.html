@@ -1,0 +1,168 @@
+{% extends 'core/base.html' %} {% block content %}
+<h2 class="mb-4">Панель управления</h2>
+
+<!-- ================= АДМИН ================= -->
+{% if role == 'admin' %}
+<div class="alert alert-dark">
+  Вы вошли как
+  <strong>Администратор</strong>
+  .
+</div>
+<table class="table table-hover table-bordered">
+  <thead class="table-dark">
+    <tr>
+      <th>Проект</th>
+      <th>Клиент</th>
+      <th>Разработчик</th>
+      <th>Статус</th>
+      <th>Цена</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in projects %}
+    <tr>
+      <td>{{ p.title }}</td>
+      <td>{{ p.client.name }}</td>
+      <td>{{ p.developer.username|default:"Не назначен" }}</td>
+      <td>
+        <span class="badge bg-secondary">{{ p.get_status_display }}</span>
+      </td>
+      <td>{{ p.price|default:"-" }} ₽</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- ================= ЗАКАЗЧИК ================= -->
+{% elif role == 'client' %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="alert alert-info mb-0 w-75">
+    Вы вошли как
+    <strong>Заказчик</strong>
+    .
+  </div>
+  <a href="{% url 'create_order' %}" class="btn btn-primary btn-lg">
+    + Оставить заявку
+  </a>
+</div>
+<div class="row">
+  {% for p in projects %}
+  <div class="col-md-6 mb-3">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">{{ p.title }}</h5>
+        <p class="card-text text-muted small">{{ p.description }}</p>
+        <hr />
+        <p class="mb-1">
+          <strong>Статус:</strong>
+          <span
+            class="badge {% if p.status == 'done' %}bg-success{% elif p.status == 'new' %}bg-secondary{% else %}bg-warning text-dark{% endif %}"
+          >
+            {{ p.get_status_display }}
+          </span>
+        </p>
+        <p class="mb-1">
+          <strong>Разработчик:</strong>
+          {{ p.developer.username|default:"Ожидает назначения" }}
+        </p>
+        <p class="mb-0">
+          <strong>Стоимость:</strong>
+          {{ p.price|default:"Уточняется" }} ₽
+        </p>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <p class="text-muted">Вы еще не оставляли заявок.</p>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- ================= РАЗРАБОТЧИК ================= -->
+{% elif role == 'developer' %}
+<div class="alert alert-success">
+  Вы вошли как
+  <strong>Разработчик</strong>
+  .
+</div>
+
+<h4 class="mt-4 mb-3">🔥 Доступные заказы</h4>
+<div class="row mb-5">
+  {% for order in available_orders %}
+  <div class="col-md-4 mb-3">
+    <div class="card border-primary h-100">
+      <div class="card-header bg-primary text-white">{{ order.title }}</div>
+      <div class="card-body">
+        <p class="small">{{ order.description }}</p>
+        <p class="mb-3">
+          <strong>Клиент:</strong>
+          {{ order.client.name }}
+        </p>
+        <a href="{% url 'take_order' order.id %}" class="btn btn-primary w-100">
+          Взять и назначить цену
+        </a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12"><p class="text-muted">Нет свободных заказов.</p></div>
+  {% endfor %}
+</div>
+
+<h4 class="mt-4 mb-3">💼 Мои проекты</h4>
+<div class="row">
+  {% for p in projects %}
+  <div class="col-md-6 mb-3">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">{{ p.title }}</h5>
+        <p class="mb-2">
+          <strong>Клиент:</strong>
+          {{ p.client.name }}
+        </p>
+        <p class="mb-2">
+          <strong>Ваша цена:</strong>
+          {{ p.price }} ₽
+        </p>
+
+        <p class="mb-3">
+          <strong>Текущий статус:</strong>
+          <span
+            class="badge {% if p.status == 'done' %}bg-success{% elif p.status == 'review' %}bg-info{% else %}bg-warning text-dark{% endif %}"
+          >
+            {{ p.get_status_display }}
+          </span>
+        </p>
+
+        <div class="d-flex gap-2">
+          {% if p.status == 'in_progress' %}
+          <a
+            href="{% url 'change_status' p.id 'review' %}"
+            class="btn btn-info btn-sm w-100"
+          >
+            Отправить заказчику на проверку
+          </a>
+          {% elif p.status == 'review' %}
+          <a
+            href="{% url 'change_status' p.id 'in_progress' %}"
+            class="btn btn-warning btn-sm w-50"
+          >
+            Вернуть в работу
+          </a>
+          <a
+            href="{% url 'change_status' p.id 'done' %}"
+            class="btn btn-success btn-sm w-50"
+          >
+            Завершить (Сдан)
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12"><p class="text-muted">Нет проектов в работе.</p></div>
+  {% endfor %}
+</div>
+{% endif %} {% endblock %}
